@@ -1,0 +1,15 @@
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Build
+target/
+
+# Secrets (jamais dans Git)
+.env
+*.pem
+
+# OS
+.DS_Store
+Thumbs.db
