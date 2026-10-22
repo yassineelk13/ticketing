@@ -1,20 +1,13 @@
 package com.billetterie.user_service.user;
 
 import com.billetterie.user_service.auth.AuthService;
-import com.billetterie.user_service.dto.LoginRequest;
-import com.billetterie.user_service.dto.RegisterRequest;
-import com.billetterie.user_service.dto.TokenResponse;
-import com.billetterie.user_service.dto.UserResponse;
+import com.billetterie.user_service.dto.*;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
@@ -45,5 +38,12 @@ public class UserController {
     public UserResponse me(@AuthenticationPrincipal Jwt jwt) {
         UUID userId = UUID.fromString(jwt.getSubject());
         return UserResponse.from(userService.getById(userId));
+    }
+
+    @PutMapping("/me")
+    public UserResponse updateMe(@AuthenticationPrincipal Jwt jwt,
+                                 @Valid @RequestBody UpdateProfileRequest request) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        return UserResponse.from(userService.updateProfile(userId, request));
     }
 }

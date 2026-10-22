@@ -52,4 +52,9 @@ public class User {
     public String getLastName() { return lastName; }
     public Role getRole() { return role; }
     public Instant getCreatedAt() { return createdAt; }
+
+    public void updateProfile(String firstName, String lastName) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
 }
