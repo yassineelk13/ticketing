@@ -1,6 +1,7 @@
 package com.billetterie.user_service.user;
 
 import com.billetterie.user_service.dto.RegisterRequest;
+import com.billetterie.user_service.dto.UpdateProfileRequest;
 import com.billetterie.user_service.exception.EmailAlreadyUsedException;
 import com.billetterie.user_service.exception.UserNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -47,5 +48,12 @@ public class UserService {
     @Transactional(readOnly = true)
     public User getById(UUID id) {
         return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+    }
+
+    @Transactional
+    public User updateProfile(UUID id, UpdateProfileRequest request) {
+        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        user.updateProfile(request.firstName().trim(), request.lastName().trim());
+        return user;
     }
 }
