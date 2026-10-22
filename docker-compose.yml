@@ -16,5 +16,19 @@ services:
       timeout: 3s
       retries: 10
 
+  user-service:
+    build: ./user-service
+    container_name: billetterie-user-service
+    depends_on:
+      user-db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://user-db:5432/user_db
+      USER_DB_USER: ${USER_DB_USER:-billetterie}
+      USER_DB_PASSWORD: ${USER_DB_PASSWORD:-billetterie}
+      JWT_SECRET: ${JWT_SECRET}
+    ports:
+      - "8081:8081"
+
 volumes:
   user-db-data:
