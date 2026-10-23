@@ -30,5 +30,32 @@ services:
     ports:
       - "8081:8081"
 
+  event-db:
+    image: mongo:8
+    container_name: billetterie-event-db
+    ports:
+      - "27017:27017"
+    volumes:
+      - event-db-data:/data/db
+    healthcheck:
+      test: [ "CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  event-service:
+    build: ./event-service
+    container_name: billetterie-event-service
+    depends_on:
+      event-db:
+        condition: service_healthy
+    environment:
+      SPRING_MONGODB_URI: mongodb://event-db:27017/event_db
+      JWT_SECRET: ${JWT_SECRET}
+      SERVER_PORT: "8082"
+    ports:
+      - "8082:8082"
+
 volumes:
   user-db-data:
+  event-db-data:
