@@ -56,6 +56,12 @@ services:
     ports:
       - "8082:8082"
 
+  discovery-server:
+    build: ./discovery-server
+    container_name: billetterie-discovery-server
+    ports:
+      - "8761:8761"
+
 volumes:
   user-db-data:
   event-db-data:
