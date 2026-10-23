@@ -43,6 +43,19 @@ services:
       timeout: 3s
       retries: 10
 
+  event-service:
+    build: ./event-service
+    container_name: billetterie-event-service
+    depends_on:
+      event-db:
+        condition: service_healthy
+    environment:
+      SPRING_MONGODB_URI: mongodb://event-db:27017/event_db
+      JWT_SECRET: ${JWT_SECRET}
+      SERVER_PORT: "8082"
+    ports:
+      - "8082:8082"
+
 volumes:
   user-db-data:
   event-db-data:
