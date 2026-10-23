@@ -1,0 +1,71 @@
+name: event-service
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'event-service/**'
+      - '.github/workflows/event-service.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'event-service/**'
+      - '.github/workflows/event-service.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: event-service
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+          cache-dependency-path: event-service/pom.xml
+
+      - name: Make Maven wrapper executable
+        run: chmod +x mvnw
+
+      - name: Build and test
+        run: ./mvnw -B verify
+
+  publish:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and publish image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./event-service
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/billetterie-event-service:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/billetterie-event-service:${{ github.sha }}
+          cache-from: type=gha,scope=event-service
+          cache-to: type=gha,mode=max,scope=event-service
