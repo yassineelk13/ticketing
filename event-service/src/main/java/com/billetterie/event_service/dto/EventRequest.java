@@ -13,7 +13,7 @@ public record EventRequest(
         @NotBlank String city,
         @NotBlank String venue,
         @NotNull @Future Instant startDate,
-        @Min(1) int totalSeats,
+        @NotNull @Min(1) Integer totalSeats,
         Map<String, Object> attributes
 ) {
 }
