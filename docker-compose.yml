@@ -5,13 +5,13 @@ services:
     environment:
       POSTGRES_DB: user_db
       POSTGRES_USER: ${USER_DB_USER:-billetterie}
-      EUREKA_INSTANCE_HOSTNAME: user-service
+      POSTGRES_PASSWORD: ${USER_DB_PASSWORD:-billetterie}
     ports:
       - "5433:5432"
     volumes:
       - user-db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${USER_DB_USER:-billetterie} -d user_db"]
+      test: [ "CMD-SHELL", "pg_isready -U ${USER_DB_USER:-billetterie} -d user_db" ]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -26,11 +26,12 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://user-db:5432/user_db
       USER_DB_USER: ${USER_DB_USER:-billetterie}
       USER_DB_PASSWORD: ${USER_DB_PASSWORD:-billetterie}
-      JWT_SECRET: ${JWT_SECRET}
-      POSTGRES_PASSWORD: ${USER_DB_PASSWORD:-billetterie}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
       EUREKA_SERVER_URL: http://discovery-server:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: user-service
     ports:
       - "8081:8081"
+
 
   event-db:
     image: mongo:8
@@ -79,6 +80,24 @@ services:
     ports:
       - "8080:8080"
 
+  ticket-db:
+    image: postgres:17-alpine
+    container_name: billetterie-ticket-db
+    environment:
+      POSTGRES_DB: ticket_db
+      POSTGRES_USER: ${TICKET_DB_USER:-billetterie}
+      POSTGRES_PASSWORD: ${TICKET_DB_PASSWORD:-billetterie}
+    ports:
+      - "5434:5432"
+    volumes:
+      - ticket-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${TICKET_DB_USER:-billetterie} -d ticket_db" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
 volumes:
   user-db-data:
   event-db-data:
+  ticket-db-data:
