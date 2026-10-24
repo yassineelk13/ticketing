@@ -2,6 +2,7 @@ package com.billetterie.ticket_service.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -47,5 +48,11 @@ public class GlobalExceptionHandler {
         ProblemDetail problem = problem(HttpStatus.BAD_REQUEST, "Invalid request", "Validation failed");
         problem.setProperty("errors", errors);
         return problem;
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ProblemDetail handleConcurrentUpdate(ObjectOptimisticLockingFailureException ex) {
+        return problem(HttpStatus.CONFLICT, "Too many concurrent requests",
+                "The reservation could not be completed, please try again");
     }
 }

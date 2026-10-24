@@ -81,15 +81,12 @@ class TicketServiceTest {
     void reserve_forUnknownEvent_createsStockFromEventServiceCapacity() {
         when(stockRepository.existsById(EVENT_ID)).thenReturn(false);
         when(eventClient.getEvent(EVENT_ID)).thenReturn(new EventInfo(EVENT_ID, 50));
-        when(stockRepository.save(any(EventStock.class))).thenAnswer(inv -> inv.getArgument(0));
         when(stockRepository.findById(EVENT_ID)).thenReturn(Optional.of(new EventStock(EVENT_ID, 50)));
         when(ticketRepository.save(any(Ticket.class))).thenAnswer(inv -> inv.getArgument(0));
 
         ticketService.reserve(EVENT_ID, userId);
 
-        ArgumentCaptor<EventStock> captor = ArgumentCaptor.forClass(EventStock.class);
-        verify(stockRepository).save(captor.capture());
-        assertThat(captor.getValue().getTotalSeats()).isEqualTo(50);
+        verify(stockRepository).insertIfAbsent(EVENT_ID, 50);
     }
 
     @Test

@@ -4,11 +4,14 @@ import com.billetterie.ticket_service.client.EventClient;
 import com.billetterie.ticket_service.client.EventInfo;
 import com.billetterie.ticket_service.exception.SoldOutException;
 import com.billetterie.ticket_service.exception.TicketNotFoundException;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 public class TicketService {
@@ -28,11 +31,26 @@ public class TicketService {
         this.transaction = transaction;
     }
 
+    private static final int MAX_ATTEMPTS = 10;
+
     public Ticket reserve(String eventId, UUID userId) {
         // 1. hors transaction : on connait la capacite de l'evenement (appel HTTP eventuel)
         ensureStockExists(eventId);
 
-        // 2. transaction courte : lire le stock, le diminuer, enregistrer le billet
+        // 2. transaction courte, rejouee si quelqu'un a modifie le stock entre-temps
+        for (int attempt = 1; ; attempt++) {
+            try {
+                return reserveOnce(eventId, userId);
+            } catch (ObjectOptimisticLockingFailureException e) {
+                if (attempt >= MAX_ATTEMPTS) {
+                    throw e;
+                }
+                backoff(attempt);
+            }
+        }
+    }
+
+    private Ticket reserveOnce(String eventId, UUID userId) {
         return transaction.execute(status -> {
             EventStock stock = stockRepository.findById(eventId)
                     .orElseThrow(() -> new IllegalStateException("Stock missing for event " + eventId));
@@ -42,8 +60,20 @@ public class TicketService {
             }
 
             stock.reserveSeat();
-            return ticketRepository.save(new Ticket(eventId, userId));
+            Ticket ticket = ticketRepository.save(new Ticket(eventId, userId));
+            stockRepository.flush(); // le conflit de version eclate ici, avant la fin de la transaction
+            return ticket;
         });
+    }
+
+    private void backoff(int attempt) {
+        try {
+            // petite pause aleatoire, de plus en plus longue : evite que tout le monde reessaie au meme instant
+            Thread.sleep(ThreadLocalRandom.current().nextLong(5L * attempt, 20L * attempt));
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Interrupted while retrying reservation", ie);
+        }
     }
 
     public List<Ticket> getMyTickets(UUID userId) {
@@ -71,6 +101,6 @@ public class TicketService {
             return;
         }
         EventInfo event = eventClient.getEvent(eventId);
-        stockRepository.save(new EventStock(eventId, event.totalSeats()));
+        stockRepository.insertIfAbsent(eventId, event.totalSeats());
     }
 }
