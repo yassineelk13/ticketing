@@ -4,6 +4,7 @@ import com.billetterie.ticket_service.client.EventClient;
 import com.billetterie.ticket_service.client.EventInfo;
 import com.billetterie.ticket_service.exception.SoldOutException;
 import com.billetterie.ticket_service.exception.TicketNotFoundException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -100,6 +101,6 @@ public class TicketService {
             return;
         }
         EventInfo event = eventClient.getEvent(eventId);
-        stockRepository.save(new EventStock(eventId, event.totalSeats()));
+        stockRepository.insertIfAbsent(eventId, event.totalSeats());
     }
 }
