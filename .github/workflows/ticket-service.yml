@@ -1,0 +1,75 @@
+name: ticket-service
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ticket-service/**'
+      - '.github/workflows/ticket-service.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'ticket-service/**'
+      - '.github/workflows/ticket-service.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ticket-service-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ticket-service
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+          cache-dependency-path: ticket-service/pom.xml
+
+      - name: Make Maven wrapper executable
+        run: chmod +x mvnw
+
+      - name: Build and test
+        run: ./mvnw -B verify
+
+  publish:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and publish image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./ticket-service
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/billetterie-ticket-service:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/billetterie-ticket-service:${{ github.sha }}
+          cache-from: type=gha,scope=ticket-service
+          cache-to: type=gha,mode=max,scope=ticket-service

@@ -97,6 +97,23 @@ services:
       timeout: 3s
       retries: 10
 
+  ticket-service:
+    build: ./ticket-service
+    container_name: billetterie-ticket-service
+    depends_on:
+      ticket-db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://ticket-db:5432/ticket_db
+      TICKET_DB_USER: ${TICKET_DB_USER:-billetterie}
+      TICKET_DB_PASSWORD: ${TICKET_DB_PASSWORD:-billetterie}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
+      EVENT_SERVICE_URL: http://event-service:8082
+      EUREKA_SERVER_URL: http://discovery-server:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: ticket-service
+    ports:
+      - "8083:8083"
+
 volumes:
   user-db-data:
   event-db-data:
