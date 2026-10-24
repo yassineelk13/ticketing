@@ -1,9 +1,7 @@
 package com.billetterie.ticket_service.ticket;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+
 
 @Entity
 @Table(name = "event_stocks")
@@ -18,6 +16,9 @@ public class EventStock {
 
     @Column(name = "available_seats", nullable = false)
     private int availableSeats;
+
+    @Version
+    private long version;
 
     protected EventStock() {
         // requis par JPA
