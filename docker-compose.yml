@@ -155,6 +155,23 @@ services:
       timeout: 3s
       retries: 10
 
+  payment-service:
+    build: ./payment-service
+    container_name: billetterie-payment-service
+    depends_on:
+      payment-db:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://payment-db:5432/payment_db
+      PAYMENT_DB_USER: ${PAYMENT_DB_USER:-billetterie}
+      PAYMENT_DB_PASSWORD: ${PAYMENT_DB_PASSWORD:-billetterie}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:19092
+    ports:
+      - "8084:8084"
+
+
 volumes:
   user-db-data:
   event-db-data:
