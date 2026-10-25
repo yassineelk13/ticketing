@@ -4,7 +4,9 @@ import com.billetterie.ticket_service.client.EventClient;
 import com.billetterie.ticket_service.client.EventInfo;
 import com.billetterie.ticket_service.exception.SoldOutException;
 import com.billetterie.ticket_service.exception.TicketNotFoundException;
-import org.springframework.dao.DataIntegrityViolationException;
+import com.billetterie.ticket_service.messaging.OutboxWriter;
+import com.billetterie.ticket_service.messaging.TicketReservedEvent;
+import com.billetterie.ticket_service.messaging.Topics;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -16,22 +18,25 @@ import java.util.concurrent.ThreadLocalRandom;
 @Service
 public class TicketService {
 
+    private static final int MAX_ATTEMPTS = 10;
+
     private final TicketRepository ticketRepository;
     private final EventStockRepository stockRepository;
     private final EventClient eventClient;
     private final TransactionTemplate transaction;
+    private final OutboxWriter outbox;
 
     public TicketService(TicketRepository ticketRepository,
                          EventStockRepository stockRepository,
                          EventClient eventClient,
-                         TransactionTemplate transaction) {
+                         TransactionTemplate transaction,
+                         OutboxWriter outbox) {
         this.ticketRepository = ticketRepository;
         this.stockRepository = stockRepository;
         this.eventClient = eventClient;
         this.transaction = transaction;
+        this.outbox = outbox;
     }
-
-    private static final int MAX_ATTEMPTS = 10;
 
     public Ticket reserve(String eventId, UUID userId) {
         // 1. hors transaction : on connait la capacite de l'evenement (appel HTTP eventuel)
@@ -61,6 +66,11 @@ public class TicketService {
 
             stock.reserveSeat();
             Ticket ticket = ticketRepository.save(new Ticket(eventId, userId));
+
+            // le message part dans la meme transaction que le billet : les deux ou aucun
+            outbox.add(Topics.TICKET_RESERVED, ticket.getId(),
+                    new TicketReservedEvent(ticket.getId(), eventId, userId));
+
             stockRepository.flush(); // le conflit de version eclate ici, avant la fin de la transaction
             return ticket;
         });

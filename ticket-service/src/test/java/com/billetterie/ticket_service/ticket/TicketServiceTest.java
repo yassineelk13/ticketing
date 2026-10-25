@@ -4,6 +4,10 @@ import com.billetterie.ticket_service.client.EventClient;
 import com.billetterie.ticket_service.client.EventInfo;
 import com.billetterie.ticket_service.exception.SoldOutException;
 import com.billetterie.ticket_service.exception.TicketNotFoundException;
+import com.billetterie.ticket_service.messaging.OutboxWriter;
+import com.billetterie.ticket_service.messaging.TicketReservedEvent;
+import com.billetterie.ticket_service.messaging.Topics;
+import static org.mockito.ArgumentMatchers.eq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,6 +29,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+
+
 @ExtendWith(MockitoExtension.class)
 class TicketServiceTest {
 
@@ -39,13 +45,16 @@ class TicketServiceTest {
     @Mock
     private EventClient eventClient;
 
+    @Mock
+    private OutboxWriter outbox;
+
     private TicketService ticketService;
     private final UUID userId = UUID.randomUUID();
 
     @BeforeEach
     void setUp() {
         TransactionTemplate transaction = new TransactionTemplate(mock(PlatformTransactionManager.class));
-        ticketService = new TicketService(ticketRepository, stockRepository, eventClient, transaction);
+        ticketService = new TicketService(ticketRepository, stockRepository, eventClient, transaction, outbox);
     }
 
     @Test
@@ -136,5 +145,31 @@ class TicketServiceTest {
 
         assertThatThrownBy(() -> ticketService.cancel(ticketId, userId))
                 .isInstanceOf(TicketNotFoundException.class);
+    }
+
+    @Test
+    void reserve_writesATicketReservedMessageInTheOutbox() {
+        EventStock stock = new EventStock(EVENT_ID, 2);
+        when(stockRepository.existsById(EVENT_ID)).thenReturn(true);
+        when(stockRepository.findById(EVENT_ID)).thenReturn(Optional.of(stock));
+        when(ticketRepository.save(any(Ticket.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Ticket ticket = ticketService.reserve(EVENT_ID, userId);
+
+        verify(outbox).add(eq(Topics.TICKET_RESERVED), any(),
+                eq(new TicketReservedEvent(ticket.getId(), EVENT_ID, userId)));
+    }
+
+    @Test
+    void reserve_whenSoldOut_writesNothingInTheOutbox() {
+        EventStock stock = new EventStock(EVENT_ID, 1);
+        stock.reserveSeat();
+        when(stockRepository.existsById(EVENT_ID)).thenReturn(true);
+        when(stockRepository.findById(EVENT_ID)).thenReturn(Optional.of(stock));
+
+        assertThatThrownBy(() -> ticketService.reserve(EVENT_ID, userId))
+                .isInstanceOf(SoldOutException.class);
+
+        verifyNoInteractions(outbox);
     }
 }

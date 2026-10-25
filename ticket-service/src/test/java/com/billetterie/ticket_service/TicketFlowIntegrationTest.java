@@ -43,7 +43,9 @@ import static org.mockito.Mockito.when;
         properties = {
                 "app.jwt.secret=" + TicketFlowIntegrationTest.SECRET,
                 "eureka.client.enabled=false",
-                "spring.cloud.discovery.enabled=false"
+                "spring.cloud.discovery.enabled=false",
+                "app.outbox.relay.enabled=false",
+                "spring.kafka.admin.auto-create=false"
         })
 @Import(TestcontainersConfiguration.class)
 class TicketFlowIntegrationTest {

@@ -103,6 +103,8 @@ services:
     depends_on:
       ticket-db:
         condition: service_healthy
+      kafka:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://ticket-db:5432/ticket_db
       TICKET_DB_USER: ${TICKET_DB_USER:-billetterie}
@@ -111,6 +113,7 @@ services:
       EVENT_SERVICE_URL: http://event-service:8082
       EUREKA_SERVER_URL: http://discovery-server:8761/eureka/
       EUREKA_INSTANCE_HOSTNAME: ticket-service
+      KAFKA_BOOTSTRAP_SERVERS: kafka:19092
     ports:
       - "8083:8083"
 

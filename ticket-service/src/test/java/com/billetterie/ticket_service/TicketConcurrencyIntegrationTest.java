@@ -3,6 +3,7 @@ package com.billetterie.ticket_service;
 import com.billetterie.ticket_service.client.EventClient;
 import com.billetterie.ticket_service.client.EventInfo;
 import com.billetterie.ticket_service.exception.SoldOutException;
+import com.billetterie.ticket_service.messaging.OutboxRepository;
 import com.billetterie.ticket_service.ticket.EventStock;
 import com.billetterie.ticket_service.ticket.EventStockRepository;
 import com.billetterie.ticket_service.ticket.TicketRepository;
@@ -32,7 +33,9 @@ import static org.mockito.Mockito.when;
         "app.jwt.secret=concurrency-test-secret-at-least-32-bytes-long!",
         "eureka.client.enabled=false",
         "spring.cloud.discovery.enabled=false",
-        "spring.datasource.hikari.maximum-pool-size=30"
+        "spring.datasource.hikari.maximum-pool-size=30",
+        "app.outbox.relay.enabled=false",
+        "spring.kafka.admin.auto-create=false"
 })
 @Import(TestcontainersConfiguration.class)
 class TicketConcurrencyIntegrationTest {
@@ -51,6 +54,9 @@ class TicketConcurrencyIntegrationTest {
     @Autowired
     private EventStockRepository stockRepository;
 
+    @Autowired
+    private OutboxRepository outboxRepository;
+
     @MockitoBean
     private EventClient eventClient;
 
@@ -59,6 +65,7 @@ class TicketConcurrencyIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        outboxRepository.deleteAll();
         ticketRepository.deleteAll();
         stockRepository.deleteAll();
         // cet evenement a deja son stock ; NEW_EVENT_ID, lui, n'en a pas
@@ -103,7 +110,7 @@ class TicketConcurrencyIntegrationTest {
     @Test
     void concurrentReservations_neverSellMoreSeatsThanAvailable() throws Exception {
         Outcome outcome = runConcurrentReservations(EVENT_ID);
-
+        assertThat(outboxRepository.count()).as("outbox messages").isEqualTo(SEATS);
         assertThat(outcome.unexpectedErrors()).as("unexpected errors").isEmpty();
         assertThat(ticketRepository.count()).as("tickets actually sold").isEqualTo(SEATS);
         assertThat(stockRepository.findById(EVENT_ID).orElseThrow().getAvailableSeats())
@@ -117,7 +124,7 @@ class TicketConcurrencyIntegrationTest {
         when(eventClient.getEvent(NEW_EVENT_ID)).thenReturn(new EventInfo(NEW_EVENT_ID, SEATS));
 
         Outcome outcome = runConcurrentReservations(NEW_EVENT_ID);
-
+        assertThat(outboxRepository.count()).as("outbox messages").isEqualTo(SEATS);
         assertThat(outcome.unexpectedErrors()).as("unexpected errors").isEmpty();
         assertThat(ticketRepository.count()).as("tickets actually sold").isEqualTo(SEATS);
         assertThat(stockRepository.findById(NEW_EVENT_ID).orElseThrow().getAvailableSeats())
