@@ -61,4 +61,16 @@ public class Ticket {
     public UUID getUserId() { return userId; }
     public TicketStatus getStatus() { return status; }
     public Instant getCreatedAt() { return createdAt; }
+
+    public void markPaid() {
+        this.status = TicketStatus.PAID;
+    }
+
+    public boolean isReserved() {
+        return status == TicketStatus.RESERVED;
+    }
+
+    public boolean isPaid() {
+        return status == TicketStatus.PAID;
+    }
 }

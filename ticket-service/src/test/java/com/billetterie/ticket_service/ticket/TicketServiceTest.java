@@ -172,4 +172,77 @@ class TicketServiceTest {
 
         verifyNoInteractions(outbox);
     }
+
+    @Test
+    void confirmPayment_marksAReservedTicketAsPaid() {
+        UUID ticketId = UUID.randomUUID();
+        Ticket ticket = new Ticket(EVENT_ID, userId);
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
+
+        ticketService.confirmPayment(ticketId);
+
+        assertThat(ticket.getStatus()).isEqualTo(TicketStatus.PAID);
+    }
+
+    @Test
+    void confirmPayment_forUnknownTicket_isIgnored() {
+        UUID ticketId = UUID.randomUUID();
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.empty());
+
+        ticketService.confirmPayment(ticketId);
+
+        verifyNoInteractions(stockRepository);
+    }
+
+    @Test
+    void confirmPayment_forACancelledTicket_keepsItCancelled() {
+        UUID ticketId = UUID.randomUUID();
+        Ticket ticket = new Ticket(EVENT_ID, userId);
+        ticket.cancel();
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
+
+        ticketService.confirmPayment(ticketId);
+
+        assertThat(ticket.getStatus()).isEqualTo(TicketStatus.CANCELLED);
+    }
+
+    @Test
+    void failPayment_cancelsTheTicketAndReleasesTheSeat() {
+        UUID ticketId = UUID.randomUUID();
+        EventStock stock = new EventStock(EVENT_ID, 2);
+        stock.reserveSeat();
+        Ticket ticket = new Ticket(EVENT_ID, userId);
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
+        when(stockRepository.findById(EVENT_ID)).thenReturn(Optional.of(stock));
+
+        ticketService.failPayment(ticketId);
+
+        assertThat(ticket.getStatus()).isEqualTo(TicketStatus.CANCELLED);
+        assertThat(stock.getAvailableSeats()).isEqualTo(2);
+    }
+
+    @Test
+    void failPayment_whenAlreadyCancelled_doesNotReleaseASecondSeat() {
+        UUID ticketId = UUID.randomUUID();
+        Ticket ticket = new Ticket(EVENT_ID, userId);
+        ticket.cancel();
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
+
+        ticketService.failPayment(ticketId);
+
+        verifyNoInteractions(stockRepository);
+    }
+
+    @Test
+    void failPayment_forAPaidTicket_changesNothing() {
+        UUID ticketId = UUID.randomUUID();
+        Ticket ticket = new Ticket(EVENT_ID, userId);
+        ticket.markPaid();
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
+
+        ticketService.failPayment(ticketId);
+
+        assertThat(ticket.getStatus()).isEqualTo(TicketStatus.PAID);
+        verifyNoInteractions(stockRepository);
+    }
 }

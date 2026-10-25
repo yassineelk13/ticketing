@@ -35,7 +35,8 @@ import static org.mockito.Mockito.when;
         "spring.cloud.discovery.enabled=false",
         "spring.datasource.hikari.maximum-pool-size=30",
         "app.outbox.relay.enabled=false",
-        "spring.kafka.admin.auto-create=false"
+        "spring.kafka.admin.auto-create=false",
+        "spring.kafka.listener.auto-startup=false"
 })
 @Import(TestcontainersConfiguration.class)
 class TicketConcurrencyIntegrationTest {
