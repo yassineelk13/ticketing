@@ -1,6 +1,8 @@
 package com.billetterie.event_service.event;
 
+import com.billetterie.event_service.cache.EventCache;
 import com.billetterie.event_service.dto.EventRequest;
+import com.billetterie.event_service.dto.EventResponse;
 import com.billetterie.event_service.exception.EventNotFoundException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -14,9 +16,11 @@ import java.util.List;
 public class EventService {
 
     private final EventRepository eventRepository;
+    private final EventCache cache;
 
-    public EventService(EventRepository eventRepository) {
+    public EventService(EventRepository eventRepository, EventCache cache) {
         this.eventRepository = eventRepository;
+        this.cache = cache;
     }
 
     public Event create(EventRequest request, String organizerId) {
@@ -34,8 +38,12 @@ public class EventService {
         return eventRepository.save(event);
     }
 
-    public Event getById(String id) {
-        return eventRepository.findById(id).orElseThrow(() -> new EventNotFoundException(id));
+    public EventResponse getById(String id) {
+        return cache.get(id).orElseGet(() -> {
+            EventResponse response = EventResponse.from(findOrThrow(id));
+            cache.put(id, response);
+            return response;
+        });
     }
 
     public List<Event> search(String city, LocalDate date) {
@@ -59,7 +67,7 @@ public class EventService {
     }
 
     public Event update(String id, EventRequest request, String organizerId) {
-        Event event = getById(id);
+        Event event = findOrThrow(id);   // toujours la base : jamais une copie du cache
         if (!event.getOrganizerId().equals(organizerId)) {
             throw new AccessDeniedException("You can only modify your own events");
         }
@@ -73,6 +81,12 @@ public class EventService {
                 request.totalSeats(),
                 request.attributes()
         );
-        return eventRepository.save(event);
+        Event saved = eventRepository.save(event);
+        cache.evict(id);                 // apres la sauvegarde : la prochaine lecture rechargera la base
+        return saved;
+    }
+
+    private Event findOrThrow(String id) {
+        return eventRepository.findById(id).orElseThrow(() -> new EventNotFoundException(id));
     }
 }
