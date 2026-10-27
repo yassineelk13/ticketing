@@ -1,5 +1,6 @@
 package com.billetterie.event_service.event;
 
+import com.billetterie.event_service.cache.EventCache;                       // <-- NOUVEAU (1) l'import
 import com.billetterie.event_service.dto.EventRequest;
 import com.billetterie.event_service.exception.EventNotFoundException;
 import org.junit.jupiter.api.Test;
@@ -28,6 +29,9 @@ class EventServiceTest {
     @Mock
     private EventRepository eventRepository;
 
+    @Mock
+    private EventCache cache;                                                // <-- NOUVEAU (2) le faux cache
+
     @InjectMocks
     private EventService eventService;
 
@@ -50,6 +54,7 @@ class EventServiceTest {
 
     @Test
     void getById_throwsWhenEventDoesNotExist() {
+        when(cache.get("nope")).thenReturn(Optional.empty());                // <-- NOUVEAU (3) "le cache est vide"
         when(eventRepository.findById("nope")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> eventService.getById("nope"))
@@ -67,6 +72,7 @@ class EventServiceTest {
 
         assertThat(updated.getTitle()).isEqualTo("New");
         assertThat(updated.getOrganizerId()).isEqualTo("owner");
+        verify(cache).evict("e1");                                           // <-- bonus : le cache est bien vide apres la modification
     }
 
     @Test

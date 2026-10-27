@@ -52,12 +52,15 @@ services:
     depends_on:
       event-db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       SPRING_MONGODB_URI: mongodb://event-db:27017/event_db
       JWT_SECRET: ${JWT_SECRET}
       SERVER_PORT: "8082"
       EUREKA_SERVER_URL: http://discovery-server:8761/eureka/
       EUREKA_INSTANCE_HOSTNAME: event-service
+      REDIS_HOST: redis
     ports:
       - "8082:8082"
 
@@ -184,6 +187,18 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:19092
     ports:
       - "8085:8085"
+
+  redis:
+    image: redis:7-alpine
+    container_name: billetterie-redis
+    command: [ "redis-server", "--maxmemory", "128mb", "--maxmemory-policy", "allkeys-lru" ]
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
 
 volumes:

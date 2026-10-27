@@ -32,7 +32,7 @@ public class EventController {
 
     @GetMapping("/{id}")
     public EventResponse getById(@PathVariable String id) {
-        return EventResponse.from(eventService.getById(id));
+        return eventService.getById(id);
     }
 
     @GetMapping
