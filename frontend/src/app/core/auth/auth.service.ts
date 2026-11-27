@@ -5,7 +5,9 @@ import { API_BASE } from '../api.config';
 import { LoginRequest, LoginResponse, RegisterRequest, UserResponse } from '../models/user.model';
 import { decodeJwt, isExpired } from './jwt.util';
 
-const TOKEN_KEY = 'billetterie.access-token';
+// const TOKEN_KEY = 'billetterie.access-token';
+
+export const TOKEN_KEY = 'billetterie.access-token';
 
 @Service()
 export class AuthService {
