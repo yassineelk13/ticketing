@@ -1,0 +1,56 @@
+<a class="back" routerLink="/events">← Retour aux événements</a>
+
+@switch (state()) {
+  @case ('loading') {
+    <div class="state" role="status">
+      <mat-progress-spinner mode="indeterminate" diameter="40" aria-label="Chargement" />
+      <p>Chargement de l’événement…</p>
+    </div>
+  }
+  @case ('notFound') {
+    <div class="state" role="alert">
+      <p>Cet événement n’existe pas ou a été supprimé.</p>
+      <a mat-flat-button routerLink="/events">Voir tous les événements</a>
+    </div>
+  }
+  @case ('error') {
+    <div class="state" role="alert">
+      <p>Impossible de charger l’événement.</p>
+      <button mat-flat-button type="button" class="retry" (click)="retry()">Réessayer</button>
+    </div>
+  }
+  @default {
+    @if (event(); as details) {
+      <article>
+        <h1>{{ details.title }}</h1>
+        <p class="type">{{ typeLabels[details.type] }}</p>
+
+        <dl class="facts">
+          <dt>Date</dt>
+          <dd>
+            <time [attr.datetime]="details.startDate">
+              {{ details.startDate | date: 'EEEE d MMMM y, HH:mm' }}
+            </time>
+          </dd>
+          <dt>Lieu</dt>
+          <dd>{{ details.venue }}, {{ details.city }}</dd>
+          <dt>Capacité</dt>
+          <dd>{{ details.totalSeats }} places au total</dd>
+        </dl>
+
+        <h2>Description</h2>
+        <p>{{ details.description || 'Aucune description.' }}</p>
+
+        @if (attributes().length > 0) {
+          <h2>Informations complémentaires</h2>
+          <dl class="facts">
+            @for (attribute of attributes(); track attribute.key) {
+              <dt>{{ attribute.label }}</dt>
+              <dd>{{ attribute.value }}</dd>
+            }
+          </dl>
+        }
+      </article>
+    }
+  }
+}
