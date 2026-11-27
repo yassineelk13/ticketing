@@ -1,10 +1,10 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { computed, inject, Service, signal } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import { API_BASE } from '../api.config';
 import { LoginRequest, LoginResponse, RegisterRequest, UserResponse } from '../models/user.model';
 import { decodeJwt, isExpired } from './jwt.util';
-
+import { SILENT_ERRORS } from '../http/api-context';
 // const TOKEN_KEY = 'billetterie.access-token';
 
 export const TOKEN_KEY = 'billetterie.access-token';
@@ -12,6 +12,7 @@ export const TOKEN_KEY = 'billetterie.access-token';
 @Service()
 export class AuthService {
   private readonly http = inject(HttpClient);
+  private readonly silentErrors = { context: new HttpContext().set(SILENT_ERRORS, true) };
   private readonly tokenState = signal<string | null>(this.loadValidToken());
 
   readonly token = this.tokenState.asReadonly();
@@ -28,12 +29,12 @@ export class AuthService {
   });
 
   register(request: RegisterRequest): Observable<UserResponse> {
-    return this.http.post<UserResponse>(`${API_BASE}/users/register`, request);
+    return this.http.post<UserResponse>(`${API_BASE}/users/register`, request, this.silentErrors);
   }
 
   login(request: LoginRequest): Observable<LoginResponse> {
     return this.http
-      .post<LoginResponse>(`${API_BASE}/users/login`, request)
+      .post<LoginResponse>(`${API_BASE}/users/login`, request, this.silentErrors)
       .pipe(tap((response) => this.setToken(response.accessToken)));
   }
 

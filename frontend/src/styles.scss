@@ -37,3 +37,16 @@ body {
   height: 100%;
 }
 /* You can add global styles to this file, and also import other style files */
+.auth-card {
+  max-width: 420px;
+  margin: 24px auto;
+
+  form {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .form-error {
+    color: #b3261e;
+  }
+}

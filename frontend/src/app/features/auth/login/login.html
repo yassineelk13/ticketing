@@ -1,1 +1,30 @@
-<p>login works!</p>
+<section class="auth-card">
+  <h1>Connexion</h1>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    @if (loginError()) {
+      <p class="form-error" role="alert">{{ loginError() }}</p>
+    }
+
+    <mat-form-field appearance="outline">
+      <mat-label>Adresse e-mail</mat-label>
+      <input matInput type="email" formControlName="email" autocomplete="email" />
+      <mat-error>{{ fieldError(form.controls.email, emailMessages) }}</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Mot de passe</mat-label>
+      <input matInput type="password" formControlName="password" autocomplete="current-password" />
+      <mat-error>{{ fieldError(form.controls.password, passwordMessages) }}</mat-error>
+    </mat-form-field>
+
+    <button mat-flat-button type="submit" [disabled]="submitting()">
+      {{ submitting() ? 'Connexion…' : 'Se connecter' }}
+    </button>
+  </form>
+
+  <p>
+    Pas encore de compte ?
+    <a routerLink="/register" [queryParams]="returnUrl ? { returnUrl } : null">Créer un compte</a>
+  </p>
+</section>
