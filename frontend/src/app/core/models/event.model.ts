@@ -23,3 +23,10 @@ export interface EventRequest {
   totalSeats: number;
   attributes?: Record<string, unknown>;
 }
+
+export const EVENT_TYPE_LABELS: Record<EventType, string> = {
+  CONCERT: 'Concert',
+  CONFERENCE: 'Conférence',
+  SPORT: 'Sport',
+  OTHER: 'Autre',
+};
