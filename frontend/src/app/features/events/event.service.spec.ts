@@ -38,4 +38,16 @@ describe('EventService', () => {
     expect(req.request.params.keys()).toEqual([]);
     req.flush([]);
   });
+
+  it('fetches one event by id', () => {
+    service.get('6ada7a51fa81b0facca6ffd1').subscribe();
+    const req = httpMock.expectOne('/api/events/6ada7a51fa81b0facca6ffd1');
+    expect(req.request.method).toBe('GET');
+    req.flush({});
+  });
+
+  it('encodes the id in the URL', () => {
+    service.get('a/b').subscribe();
+    httpMock.expectOne('/api/events/a%2Fb').flush({});
+  });
 });

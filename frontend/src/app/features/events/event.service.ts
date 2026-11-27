@@ -30,4 +30,9 @@ export class EventService {
       context: this.silentErrors,
     });
   }
+  get(id: string): Observable<EventResponse> {
+    return this.http.get<EventResponse>(`${API_BASE}/events/${encodeURIComponent(id)}`, {
+      context: this.silentErrors,
+    });
+  }
 }

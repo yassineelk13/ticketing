@@ -10,6 +10,12 @@ export const routes: Routes = [
       import('./features/events/events-list/events-list').then((m) => m.EventsList),
   },
   {
+    path: 'events/:id',
+    title: 'Détail de l’événement',
+    loadComponent: () =>
+      import('./features/events/event-detail/event-detail').then((m) => m.EventDetail),
+  },
+  {
     path: 'login',
     title: 'Connexion',
     canActivate: [guestGuard],
