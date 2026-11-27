@@ -1,0 +1,27 @@
+@if (auth.isAuthenticated()) {
+  <button
+    mat-flat-button
+    type="button"
+    class="reserve"
+    [disabled]="reserving()"
+    (click)="reserve()"
+  >
+    {{ reserving() ? 'Réservation…' : 'Réserver une place' }}
+  </button>
+  <p class="confirmation" role="status">
+    {{
+      confirmed()
+        ? 'Place réservée. Le paiement est en cours de traitement : le statut de votre billet sera mis à jour dans quelques secondes.'
+        : ''
+    }}
+  </p>
+} @else {
+  <a
+    mat-flat-button
+    class="login"
+    routerLink="/login"
+    [queryParams]="{ returnUrl: loginReturnUrl() }"
+  >
+    Se connecter pour réserver
+  </a>
+}
