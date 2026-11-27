@@ -1,1 +1,69 @@
-<p>events-list works!</p>
+<section>
+  <h1>Événements</h1>
+
+  <form class="filters" [formGroup]="form" (ngSubmit)="search()">
+    <mat-form-field appearance="outline">
+      <mat-label>Ville</mat-label>
+      <input matInput formControlName="city" autocomplete="off" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Date</mat-label>
+      <input matInput type="date" formControlName="date" />
+    </mat-form-field>
+
+    <button mat-flat-button type="submit">Rechercher</button>
+    <button mat-button type="button" (click)="reset()">Effacer</button>
+  </form>
+
+  @switch (state()) {
+    @case ('loading') {
+      <div class="state" role="status">
+        <mat-progress-spinner mode="indeterminate" diameter="40" aria-label="Chargement" />
+        <p>Chargement des événements…</p>
+      </div>
+    }
+    @case ('error') {
+      <div class="state" role="alert">
+        <p>Impossible de charger les événements.</p>
+        <button mat-flat-button type="button" class="retry" (click)="search()">Réessayer</button>
+      </div>
+    }
+    @default {
+      @if (events().length > 0) {
+        <ul class="cards">
+          @for (event of events(); track event.id) {
+            <li>
+              <mat-card class="event-card">
+                <mat-card-header>
+                  <mat-card-title>{{ event.title }}</mat-card-title>
+                  <mat-card-subtitle>{{ typeLabels[event.type] }}</mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                  <p>
+                    <time [attr.datetime]="event.startDate">
+                      {{ event.startDate | date: 'EEEE d MMMM y, HH:mm' }}
+                    </time>
+                  </p>
+                  <p>{{ event.venue }}, {{ event.city }}</p>
+                  <p>{{ event.totalSeats }} places au total</p>
+                </mat-card-content>
+                <mat-card-actions>
+                  <a mat-button [routerLink]="['/events', event.id]">Voir le détail</a>
+                </mat-card-actions>
+              </mat-card>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="state" role="status">
+          {{
+            filtered()
+              ? 'Aucun événement ne correspond à votre recherche.'
+              : 'Aucun événement pour le moment.'
+          }}
+        </p>
+      }
+    }
+  }
+</section>
