@@ -10,6 +10,7 @@ import { catchError, map, merge, of, Subject, switchMap, tap } from 'rxjs';
 import { EVENT_TYPE_LABELS, EventResponse } from '../../../core/models/event.model';
 import { attributeEntries } from '../event-attributes';
 import { EventService } from '../event.service';
+import { ReserveButton } from '../../tickets/reserve-button/reserve-button';
 
 type LoadState = 'loading' | 'ready' | 'notFound' | 'error';
 
@@ -20,7 +21,7 @@ interface LoadResult {
 
 @Component({
   selector: 'app-event-detail',
-  imports: [DatePipe, RouterLink, MatButtonModule, MatProgressSpinnerModule],
+  imports: [DatePipe, RouterLink, MatButtonModule, MatProgressSpinnerModule, ReserveButton],
   templateUrl: './event-detail.html',
   styleUrl: './event-detail.scss',
 })
