@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { makeToken } from '../../testing/make-token';
 import { AuthService } from './auth.service';
+import { vi } from 'vitest';
 
 const KEY = 'billetterie.access-token';
 const nowInSeconds = (): number => Math.floor(Date.now() / 1000);
@@ -85,5 +86,52 @@ describe('AuthService', () => {
     const req = httpMock.expectOne('/api/users/register');
     expect(req.request.method).toBe('POST');
     req.flush({ id: '1', email: 'a@b.com', firstName: 'A', lastName: 'B', role: 'USER' });
+  });
+  describe('session expiry', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-01-01T00:00:00Z'));
+    });
+
+    afterEach(() => vi.useRealTimers());
+
+    function storeTokenExpiringIn(seconds: number): void {
+      sessionStorage.setItem(
+        KEY,
+        makeToken({
+          sub: 'u1',
+          email: 'a@b.com',
+          role: 'USER',
+          exp: Math.floor(Date.now() / 1000) + seconds,
+        }),
+      );
+    }
+
+    it('logs out and emits when the token expires', () => {
+      storeTokenExpiringIn(60);
+      const service = setup();
+      let expiredEvents = 0;
+      service.sessionExpired$.subscribe(() => expiredEvents++);
+
+      vi.advanceTimersByTime(59_000);
+      expect(service.isAuthenticated()).toBe(true);
+
+      vi.advanceTimersByTime(2_000);
+      expect(service.isAuthenticated()).toBe(false);
+      expect(sessionStorage.getItem(KEY)).toBeNull();
+      expect(expiredEvents).toBe(1);
+    });
+
+    it('does not emit after a manual logout', () => {
+      storeTokenExpiringIn(60);
+      const service = setup();
+      let expiredEvents = 0;
+      service.sessionExpired$.subscribe(() => expiredEvents++);
+
+      service.logout();
+      vi.advanceTimersByTime(120_000);
+
+      expect(expiredEvents).toBe(0);
+    });
   });
 });
