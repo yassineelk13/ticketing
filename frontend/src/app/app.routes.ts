@@ -14,6 +14,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/login/login').then((m) => m.Login),
   },
   {
+    path: 'register',
+    title: 'Inscription',
+    loadComponent: () => import('./features/auth/register/register').then((m) => m.Register),
+  },
+  {
     path: '**',
     title: 'Page introuvable',
     loadComponent: () => import('./shared/not-found/not-found').then((m) => m.NotFound),
