@@ -13,3 +13,14 @@
   margin: 0 auto;
   padding: 16px;
 }
+
+.user {
+  margin-right: 8px;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 600px) {
+  .user {
+    display: none;
+  }
+}

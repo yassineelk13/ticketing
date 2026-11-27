@@ -2,7 +2,13 @@
   <a class="brand" routerLink="/">Billetterie</a>
   <span class="spacer"></span>
   <a mat-button routerLink="/events" routerLinkActive="active">Événements</a>
-  <a mat-button routerLink="/login" routerLinkActive="active">Connexion</a>
+  @if (auth.isAuthenticated()) {
+    <span class="user">{{ auth.claims()?.email }}</span>
+    <button mat-button type="button" (click)="logout()">Déconnexion</button>
+  } @else {
+    <a mat-button routerLink="/login" routerLinkActive="active">Connexion</a>
+    <a mat-button routerLink="/register" routerLinkActive="active">Inscription</a>
+  }
 </mat-toolbar>
 
 <main class="content">
