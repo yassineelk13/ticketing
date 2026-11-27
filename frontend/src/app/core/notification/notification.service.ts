@@ -1,0 +1,15 @@
+import { inject, Service } from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
+
+@Service()
+export class NotificationService {
+  private readonly snackBar = inject(MatSnackBar);
+
+  success(message: string): void {
+    this.snackBar.open(message, 'Fermer', { duration: 4000 });
+  }
+
+  error(message: string): void {
+    this.snackBar.open(message, 'Fermer', { duration: 7000 });
+  }
+}
