@@ -27,4 +27,11 @@ describe('TicketService', () => {
       { status: 201, statusText: 'Created' },
     );
   });
+
+  it('fetches my tickets', () => {
+    service.myTickets().subscribe();
+    const req = httpMock.expectOne('/api/tickets/my-tickets');
+    expect(req.request.method).toBe('GET');
+    req.flush([]);
+  });
 });
