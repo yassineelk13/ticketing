@@ -5,6 +5,7 @@
   @if (auth.isAuthenticated()) {
     <span class="user">{{ auth.claims()?.email }}</span>
     <a mat-button routerLink="/tickets" routerLinkActive="active">Mes billets</a>
+    <a mat-button routerLink="/profile" routerLinkActive="active">Profil</a>
     <button mat-button type="button" (click)="logout()">Déconnexion</button>
   } @else {
     <a mat-button routerLink="/login" routerLinkActive="active">Connexion</a>

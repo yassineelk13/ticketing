@@ -35,6 +35,12 @@ export const routes: Routes = [
       import('./features/tickets/my-tickets/my-tickets').then((m) => m.MyTickets),
   },
   {
+    path: 'profile',
+    title: 'Mon profil',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/profile/profile/profile').then((m) => m.Profile),
+  },
+  {
     path: '**',
     title: 'Page introuvable',
     loadComponent: () => import('./shared/not-found/not-found').then((m) => m.NotFound),
