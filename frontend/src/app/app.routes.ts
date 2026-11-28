@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { guestGuard } from './core/auth/auth.guards';
+import { authGuard, guestGuard } from './core/auth/auth.guards';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'events' },
@@ -26,6 +26,13 @@ export const routes: Routes = [
     title: 'Inscription',
     canActivate: [guestGuard],
     loadComponent: () => import('./features/auth/register/register').then((m) => m.Register),
+  },
+  {
+    path: 'tickets',
+    title: 'Mes billets',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/tickets/my-tickets/my-tickets').then((m) => m.MyTickets),
   },
   {
     path: '**',

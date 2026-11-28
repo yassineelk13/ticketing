@@ -9,11 +9,11 @@
     {{ reserving() ? 'Réservation…' : 'Réserver une place' }}
   </button>
   <p class="confirmation" role="status">
-    {{
-      confirmed()
-        ? 'Place réservée. Le paiement est en cours de traitement : le statut de votre billet sera mis à jour dans quelques secondes.'
-        : ''
-    }}
+    @if (confirmed()) {
+      Place réservée. Le paiement est en cours de traitement : le statut de votre billet sera mis à
+      jour dans quelques secondes.
+      <a routerLink="/tickets">Voir mes billets</a>
+    }
   </p>
 } @else {
   <a

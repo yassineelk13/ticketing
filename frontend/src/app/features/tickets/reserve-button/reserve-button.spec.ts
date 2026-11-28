@@ -106,6 +106,7 @@ describe('ReserveButton', () => {
 
     expect(root().querySelector('[role="status"]')?.textContent).toContain('Place réservée');
     expect(messages).toEqual([]);
+    expect(root().querySelector('a[href="/tickets"]')).not.toBeNull();
   });
 
   it.each([

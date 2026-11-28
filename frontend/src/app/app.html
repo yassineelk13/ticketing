@@ -4,6 +4,7 @@
   <a mat-button routerLink="/events" routerLinkActive="active">Événements</a>
   @if (auth.isAuthenticated()) {
     <span class="user">{{ auth.claims()?.email }}</span>
+    <a mat-button routerLink="/tickets" routerLinkActive="active">Mes billets</a>
     <button mat-button type="button" (click)="logout()">Déconnexion</button>
   } @else {
     <a mat-button routerLink="/login" routerLinkActive="active">Connexion</a>
