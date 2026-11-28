@@ -34,4 +34,11 @@ describe('TicketService', () => {
     expect(req.request.method).toBe('GET');
     req.flush([]);
   });
+
+  it('cancels a ticket with a DELETE request', () => {
+    service.cancel('t1').subscribe();
+    const req = httpMock.expectOne('/api/tickets/t1');
+    expect(req.request.method).toBe('DELETE');
+    req.flush(null, { status: 204, statusText: 'No Content' });
+  });
 });
