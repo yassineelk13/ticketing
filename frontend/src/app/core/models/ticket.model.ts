@@ -10,3 +10,9 @@ export interface TicketResponse {
 export interface ReserveRequest {
   eventId: string;
 }
+
+export const TICKET_STATUS_LABELS: Record<TicketStatus, string> = {
+  RESERVED: 'En attente de paiement',
+  PAID: 'Payé',
+  CANCELLED: 'Annulé',
+};

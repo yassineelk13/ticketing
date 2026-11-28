@@ -1,0 +1,76 @@
+<section>
+  <div class="header">
+    <h1>Mes billets</h1>
+    <button
+      mat-button
+      type="button"
+      class="refresh"
+      [disabled]="state() === 'loading'"
+      (click)="reload()"
+    >
+      Actualiser
+    </button>
+  </div>
+
+  @switch (state()) {
+    @case ('loading') {
+      <div class="state" role="status">
+        <mat-progress-spinner mode="indeterminate" diameter="40" aria-label="Chargement" />
+        <p>Chargement de vos billets…</p>
+      </div>
+    }
+    @case ('error') {
+      <div class="state" role="alert">
+        <p>Impossible de charger vos billets.</p>
+        <button mat-flat-button type="button" class="retry" (click)="reload()">Réessayer</button>
+      </div>
+    }
+    @default {
+      @if (views().length > 0) {
+        <ul class="tickets">
+          @for (view of views(); track view.ticket.id) {
+            <li>
+              <mat-card class="ticket-card">
+                <mat-card-header>
+                  <mat-card-title>
+                    @if (view.event; as event) {
+                      <a [routerLink]="['/events', event.id]">{{ event.title }}</a>
+                    } @else {
+                      Événement indisponible
+                    }
+                  </mat-card-title>
+                  <mat-card-subtitle>
+                    Billet n° {{ view.ticket.id.slice(0, 8) }}
+                  </mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                  <p>
+                    <span class="status" [attr.data-status]="view.ticket.status">
+                      {{ statusLabels[view.ticket.status] }}
+                    </span>
+                  </p>
+                  @if (view.event; as event) {
+                    <p>
+                      <time [attr.datetime]="event.startDate">
+                        {{ event.startDate | date: 'EEEE d MMMM y, HH:mm' }}
+                      </time>
+                      · {{ event.venue }}, {{ event.city }}
+                    </p>
+                  }
+                  <p class="reserved-at">
+                    Réservé le {{ view.ticket.createdAt | date: 'd MMMM y, HH:mm' }}
+                  </p>
+                </mat-card-content>
+              </mat-card>
+            </li>
+          }
+        </ul>
+      } @else {
+        <div class="state" role="status">
+          <p>Vous n’avez pas encore de billet.</p>
+          <a mat-flat-button routerLink="/events">Découvrir les événements</a>
+        </div>
+      }
+    }
+  }
+</section>

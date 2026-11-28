@@ -17,4 +17,10 @@ export class TicketService {
       context: this.silentErrors,
     });
   }
+
+  myTickets(): Observable<TicketResponse[]> {
+    return this.http.get<TicketResponse[]>(`${API_BASE}/tickets/my-tickets`, {
+      context: this.silentErrors,
+    });
+  }
 }

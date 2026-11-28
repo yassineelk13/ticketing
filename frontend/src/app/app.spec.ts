@@ -49,6 +49,7 @@ describe('App', () => {
     expect(el.querySelector('a[href="/login"]')).not.toBeNull();
     expect(el.querySelector('a[href="/register"]')).not.toBeNull();
     expect(el.textContent).not.toContain('Déconnexion');
+    expect(el.querySelector('a[href="/tickets"]')).toBeNull();
   });
 
   it('shows the user email and a logout button when logged in', async () => {
@@ -59,6 +60,7 @@ describe('App', () => {
     expect(el.textContent).toContain('a@b.com');
     expect(el.textContent).toContain('Déconnexion');
     expect(el.querySelector('a[href="/login"]')).toBeNull();
+    expect(el.querySelector('a[href="/tickets"]')).not.toBeNull();
   });
 
   it('notifies and redirects to login when the session expires', () => {
