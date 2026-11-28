@@ -1,5 +1,8 @@
 <section>
-  <h1>Mes événements</h1>
+  <div class="header">
+    <h1>Mes événements</h1>
+    <a mat-flat-button routerLink="/organizer/events/new">Créer un événement</a>
+  </div>
 
   @switch (state()) {
     @case ('loading') {
@@ -34,6 +37,7 @@
                   <p>{{ event.totalSeats }} places au total</p>
                 </mat-card-content>
                 <mat-card-actions>
+                  <a mat-button [routerLink]="['/organizer/events', event.id, 'edit']">Modifier</a>
                   <a mat-button [routerLink]="['/events', event.id]">Voir la page publique</a>
                 </mat-card-actions>
               </mat-card>
