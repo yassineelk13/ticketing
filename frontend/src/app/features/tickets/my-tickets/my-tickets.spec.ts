@@ -5,6 +5,8 @@ import { provideRouter } from '@angular/router';
 import { EventResponse } from '../../../core/models/event.model';
 import { TicketResponse, TicketStatus } from '../../../core/models/ticket.model';
 import { MyTickets } from './my-tickets';
+import { vi } from 'vitest';
+import { POLL_INTERVAL_MS } from '../ticket-polling';
 
 const ticket = (id: string, status: TicketStatus): TicketResponse => ({
   id: `${id}-0000-0000-0000-000000000000`,
@@ -97,5 +99,36 @@ describe('MyTickets', () => {
 
     expect(text()).toContain('Événement indisponible');
     expect(text()).toContain('Payé');
+  });
+
+  describe('live status', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('refreshes while a ticket is reserved, announces the change, then stops', () => {
+      fixture.detectChanges();
+      httpMock.expectOne('/api/tickets/my-tickets').flush([ticket('aaaaaaaa', 'RESERVED')]);
+      httpMock.expectOne('/api/events/e1').flush(gnawa);
+      fixture.detectChanges();
+      expect(text()).toContain('En attente de paiement');
+      expect(text()).toContain('Mise à jour automatique');
+
+      vi.advanceTimersByTime(POLL_INTERVAL_MS);
+      httpMock.expectOne('/api/tickets/my-tickets').flush([ticket('aaaaaaaa', 'PAID')]);
+      httpMock.expectNone('/api/events/e1'); // the event is cached: only the tickets are refreshed
+      fixture.detectChanges();
+
+      expect(text()).toContain('Payé');
+      expect(root().querySelector('.announcement')?.textContent).toContain('Concert Gnawa');
+      expect(text()).not.toContain('Mise à jour automatique');
+
+      vi.advanceTimersByTime(POLL_INTERVAL_MS * 5);
+      httpMock.expectNone('/api/tickets/my-tickets');
+    });
   });
 });
