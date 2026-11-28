@@ -1,0 +1,47 @@
+<section class="profile">
+  <h1>Mon profil</h1>
+
+  @switch (state()) {
+    @case ('loading') {
+      <div class="state" role="status">
+        <mat-progress-spinner mode="indeterminate" diameter="40" aria-label="Chargement" />
+        <p>Chargement de votre profil…</p>
+      </div>
+    }
+    @case ('error') {
+      <div class="state" role="alert">
+        <p>Impossible de charger votre profil.</p>
+        <button mat-flat-button type="button" class="retry" (click)="reload()">Réessayer</button>
+      </div>
+    }
+    @default {
+      @if (profile(); as current) {
+        <dl class="facts">
+          <dt>Adresse e-mail</dt>
+          <dd>{{ current.email }}</dd>
+          <dt>Type de compte</dt>
+          <dd>{{ roleLabels[current.role] }}</dd>
+        </dl>
+
+        <h2>Modifier mes informations</h2>
+        <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+          <mat-form-field appearance="outline">
+            <mat-label>Prénom</mat-label>
+            <input matInput formControlName="firstName" autocomplete="given-name" />
+            <mat-error>{{ fieldError(form.controls.firstName, requiredMessages) }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Nom</mat-label>
+            <input matInput formControlName="lastName" autocomplete="family-name" />
+            <mat-error>{{ fieldError(form.controls.lastName, requiredMessages) }}</mat-error>
+          </mat-form-field>
+
+          <button mat-flat-button type="submit" class="save" [disabled]="saving() || form.pristine">
+            {{ saving() ? 'Enregistrement…' : 'Enregistrer' }}
+          </button>
+        </form>
+      }
+    }
+  }
+</section>

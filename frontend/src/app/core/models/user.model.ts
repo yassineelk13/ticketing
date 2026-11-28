@@ -31,3 +31,8 @@ export interface UpdateProfileRequest {
   firstName: string;
   lastName: string;
 }
+
+export const ROLE_LABELS: Record<Role, string> = {
+  USER: 'Participant',
+  ORGANIZER: 'Organisateur',
+};
