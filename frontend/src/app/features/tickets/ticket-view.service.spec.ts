@@ -94,4 +94,17 @@ describe('TicketViewService', () => {
 
     expect(failed).toBe(true);
   });
+
+  it('does not request events that are already in the cache', () => {
+    const cache = new Map<string, EventResponse>([['e1', event('e1', 'Concert Gnawa')]]);
+    let result: TicketView[] | undefined;
+    service.load(cache).subscribe((views) => (result = views));
+
+    httpMock
+      .expectOne('/api/tickets/my-tickets')
+      .flush([ticket('t1', 'e1', '2026-12-01T10:00:00Z')]);
+    httpMock.expectNone('/api/events/e1');
+
+    expect(result?.[0]?.event?.title).toBe('Concert Gnawa');
+  });
 });

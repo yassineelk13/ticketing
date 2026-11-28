@@ -12,6 +12,8 @@
     </button>
   </div>
 
+  <p class="announcement" role="status">{{ announcement() }}</p>
+
   @switch (state()) {
     @case ('loading') {
       <div class="state" role="status">
@@ -27,6 +29,15 @@
     }
     @default {
       @if (views().length > 0) {
+        @if (polling()) {
+          <p class="polling-note">Mise à jour automatique des statuts en cours…</p>
+        } @else if (hasPending()) {
+          <p class="polling-note">
+            La mise à jour automatique est arrêtée. Cliquez sur « Actualiser » pour vérifier le
+            statut de vos billets.
+          </p>
+        }
+
         <ul class="tickets">
           @for (view of views(); track view.ticket.id) {
             <li>
