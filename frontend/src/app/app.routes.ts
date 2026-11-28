@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, guestGuard } from './core/auth/auth.guards';
+import { authGuard, guestGuard, roleGuard } from './core/auth/auth.guards';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'events' },
@@ -39,6 +39,12 @@ export const routes: Routes = [
     title: 'Mon profil',
     canActivate: [authGuard],
     loadComponent: () => import('./features/profile/profile/profile').then((m) => m.Profile),
+  },
+  {
+    path: 'organizer/events',
+    title: 'Mes événements',
+    canActivate: [roleGuard('ORGANIZER')],
+    loadComponent: () => import('./features/organizer/my-events/my-events').then((m) => m.MyEvents),
   },
   {
     path: '**',
