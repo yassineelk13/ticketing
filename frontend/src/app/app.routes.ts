@@ -47,6 +47,20 @@ export const routes: Routes = [
     loadComponent: () => import('./features/organizer/my-events/my-events').then((m) => m.MyEvents),
   },
   {
+    path: 'organizer/events/new',
+    title: 'Créer un événement',
+    canActivate: [roleGuard('ORGANIZER')],
+    loadComponent: () =>
+      import('./features/organizer/event-form/event-form').then((m) => m.EventForm),
+  },
+  {
+    path: 'organizer/events/:id/edit',
+    title: 'Modifier un événement',
+    canActivate: [roleGuard('ORGANIZER')],
+    loadComponent: () =>
+      import('./features/organizer/event-form/event-form').then((m) => m.EventForm),
+  },
+  {
     path: '**',
     title: 'Page introuvable',
     loadComponent: () => import('./shared/not-found/not-found').then((m) => m.NotFound),

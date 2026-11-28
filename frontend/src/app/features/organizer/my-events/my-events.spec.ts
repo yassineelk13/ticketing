@@ -75,6 +75,8 @@ describe('MyEvents', () => {
 
     expect(titles()).toEqual(['Alpha', 'Zeta']);
     expect(text()).not.toContain('Someone else');
+    expect(root().querySelector('a[href="/organizer/events/new"]')).not.toBeNull();
+    expect(root().querySelector('a[href="/organizer/events/3/edit"]')).not.toBeNull();
   });
 
   it('shows an empty state when I have no event', async () => {

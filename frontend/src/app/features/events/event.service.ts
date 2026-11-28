@@ -3,7 +3,7 @@ import { inject, Service } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE } from '../../core/api.config';
 import { SILENT_ERRORS } from '../../core/http/api-context';
-import { EventResponse } from '../../core/models/event.model';
+import { EventRequest, EventResponse } from '../../core/models/event.model';
 
 export interface EventFilters {
   city?: string;
@@ -32,6 +32,18 @@ export class EventService {
   }
   get(id: string): Observable<EventResponse> {
     return this.http.get<EventResponse>(`${API_BASE}/events/${encodeURIComponent(id)}`, {
+      context: this.silentErrors,
+    });
+  }
+
+  create(request: EventRequest): Observable<EventResponse> {
+    return this.http.post<EventResponse>(`${API_BASE}/events`, request, {
+      context: this.silentErrors,
+    });
+  }
+
+  update(id: string, request: EventRequest): Observable<EventResponse> {
+    return this.http.put<EventResponse>(`${API_BASE}/events/${encodeURIComponent(id)}`, request, {
       context: this.silentErrors,
     });
   }

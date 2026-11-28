@@ -1,0 +1,137 @@
+<a class="back" routerLink="/organizer/events">← Mes événements</a>
+<h1>{{ isEdit() ? 'Modifier l’événement' : 'Créer un événement' }}</h1>
+
+@switch (state()) {
+  @case ('loading') {
+    <div class="state" role="status">
+      <mat-progress-spinner mode="indeterminate" diameter="40" aria-label="Chargement" />
+      <p>Chargement…</p>
+    </div>
+  }
+  @case ('notFound') {
+    <div class="state" role="alert">
+      <p>Cet événement n’existe pas ou a été supprimé.</p>
+      <a mat-flat-button routerLink="/organizer/events">Retour à mes événements</a>
+    </div>
+  }
+  @case ('forbidden') {
+    <div class="state" role="alert">
+      <p>Vous ne pouvez modifier que vos propres événements.</p>
+      <a mat-flat-button routerLink="/organizer/events">Retour à mes événements</a>
+    </div>
+  }
+  @case ('error') {
+    <div class="state" role="alert">
+      <p>Impossible de charger l’événement.</p>
+      <button mat-flat-button type="button" class="retry" (click)="retry()">Réessayer</button>
+    </div>
+  }
+  @default {
+    <form class="event-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <mat-form-field appearance="outline">
+        <mat-label>Titre</mat-label>
+        <input matInput formControlName="title" />
+        <mat-error>{{ fieldError(form.controls.title, titleMessages) }}</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Description (facultative)</mat-label>
+        <textarea matInput rows="4" formControlName="description"></textarea>
+        <mat-error>{{ fieldError(form.controls.description, descriptionMessages) }}</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Type</mat-label>
+        <mat-select formControlName="type">
+          @for (type of types; track type) {
+            <mat-option [value]="type">{{ typeLabels[type] }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Ville</mat-label>
+        <input matInput formControlName="city" />
+        <mat-error>{{ fieldError(form.controls.city, requiredMessages) }}</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Lieu</mat-label>
+        <input matInput formControlName="venue" />
+        <mat-error>{{ fieldError(form.controls.venue, requiredMessages) }}</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Date et heure</mat-label>
+        <input matInput type="datetime-local" formControlName="startDate" />
+        <mat-hint>Heure de votre fuseau horaire. La date doit être dans le futur.</mat-hint>
+        <mat-error>{{ fieldError(form.controls.startDate, dateMessages) }}</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Nombre de places</mat-label>
+        <input
+          matInput
+          type="number"
+          min="1"
+          step="1"
+          inputmode="numeric"
+          formControlName="totalSeats"
+        />
+        <mat-error>{{ fieldError(form.controls.totalSeats, seatsMessages) }}</mat-error>
+      </mat-form-field>
+
+      <fieldset class="attributes">
+        <legend>Informations complémentaires (facultatif)</legend>
+        <p class="hint">
+          Par exemple : artiste, âge minimum. Les valeurs sont enregistrées comme du texte.
+        </p>
+
+        <div formArrayName="attributes">
+          @for (row of form.controls.attributes.controls; track row; let i = $index) {
+            <div class="attribute-row" [formGroupName]="i">
+              <mat-form-field appearance="outline">
+                <mat-label>Nom</mat-label>
+                <input matInput formControlName="key" />
+                <mat-error>{{ fieldError(row.controls.key, keyMessages) }}</mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Valeur</mat-label>
+                <input matInput formControlName="value" />
+              </mat-form-field>
+              <button
+                mat-button
+                type="button"
+                class="remove-attribute"
+                [attr.aria-label]="'Supprimer l’attribut ' + (i + 1)"
+                (click)="removeAttribute(i)"
+              >
+                Supprimer
+              </button>
+            </div>
+          }
+        </div>
+
+        @if (form.controls.attributes.hasError('duplicateKeys')) {
+          <p class="form-error" role="alert">Deux attributs portent le même nom.</p>
+        }
+        <button mat-button type="button" class="add-attribute" (click)="addAttribute()">
+          Ajouter un attribut
+        </button>
+      </fieldset>
+
+      <div class="actions">
+        <button mat-flat-button type="submit" class="save" [disabled]="saving()">
+          {{
+            saving()
+              ? 'Enregistrement…'
+              : isEdit()
+                ? 'Enregistrer les modifications'
+                : 'Créer l’événement'
+          }}
+        </button>
+        <a mat-button routerLink="/organizer/events">Annuler</a>
+      </div>
+    </form>
+  }
+}

@@ -50,4 +50,36 @@ describe('EventService', () => {
     service.get('a/b').subscribe();
     httpMock.expectOne('/api/events/a%2Fb').flush({});
   });
+
+  it('creates an event with a POST request', () => {
+    const request = {
+      title: 'Concert',
+      type: 'CONCERT' as const,
+      city: 'Agadir',
+      venue: 'Theatre',
+      startDate: '2099-01-15T20:00:00.000Z',
+      totalSeats: 50,
+    };
+    service.create(request).subscribe();
+    const req = httpMock.expectOne('/api/events');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(request);
+    req.flush({}, { status: 201, statusText: 'Created' });
+  });
+
+  it('updates an event with a PUT request', () => {
+    const request = {
+      title: 'Concert',
+      type: 'CONCERT' as const,
+      city: 'Agadir',
+      venue: 'Theatre',
+      startDate: '2099-01-15T20:00:00.000Z',
+      totalSeats: 50,
+    };
+    service.update('e1', request).subscribe();
+    const req = httpMock.expectOne('/api/events/e1');
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual(request);
+    req.flush({});
+  });
 });
