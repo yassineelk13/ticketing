@@ -23,4 +23,10 @@ export class TicketService {
       context: this.silentErrors,
     });
   }
+
+  cancel(ticketId: string): Observable<void> {
+    return this.http.delete<void>(`${API_BASE}/tickets/${encodeURIComponent(ticketId)}`, {
+      context: this.silentErrors,
+    });
+  }
 }

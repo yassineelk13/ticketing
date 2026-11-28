@@ -72,6 +72,22 @@
                     Réservé le {{ view.ticket.createdAt | date: 'd MMMM y, HH:mm' }}
                   </p>
                 </mat-card-content>
+                @if (view.ticket.status !== 'CANCELLED') {
+                  <mat-card-actions>
+                    <button
+                      mat-button
+                      type="button"
+                      class="cancel"
+                      [disabled]="cancellingId() !== null"
+                      [attr.aria-label]="
+                        'Annuler le billet pour ' + (view.event?.title ?? 'un événement')
+                      "
+                      (click)="cancel(view)"
+                    >
+                      Annuler le billet
+                    </button>
+                  </mat-card-actions>
+                }
               </mat-card>
             </li>
           }
