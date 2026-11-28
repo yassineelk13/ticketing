@@ -63,6 +63,7 @@ describe('App', () => {
     expect(el.querySelector('a[href="/login"]')).toBeNull();
     expect(el.querySelector('a[href="/tickets"]')).not.toBeNull();
     expect(el.querySelector('a[href="/profile"]')).not.toBeNull();
+    expect(el.querySelector('a[href="/organizer/events"]')).toBeNull();
   });
 
   it('notifies and redirects to login when the session expires', () => {
@@ -83,5 +84,21 @@ describe('App', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it('shows the organizer space link only to organizers', async () => {
+    sessionStorage.setItem(
+      TOKEN_KEY,
+      makeToken({
+        sub: 'o1',
+        email: 'org@example.com',
+        role: 'ORGANIZER',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      }),
+    );
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelector('a[href="/organizer/events"]')).not.toBeNull();
   });
 });
